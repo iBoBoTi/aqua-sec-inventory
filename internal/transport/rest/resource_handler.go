@@ -1,20 +1,28 @@
 package rest
 
 import (
-    "net/http"
-    "strconv"
-    "strings"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
 
-    "github.com/gin-gonic/gin"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/usecase"
+	"github.com/gin-gonic/gin"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/service"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/usecase"
 )
 
 type ResourceHandler struct {
     resourceUC usecase.ResourceUsecase
+    notifier service.Notifier
 }
 
-func NewResourceHandler(resourceUC usecase.ResourceUsecase) *ResourceHandler {
-    return &ResourceHandler{resourceUC: resourceUC}
+func NewResourceHandler(resourceUC usecase.ResourceUsecase, notifier service.Notifier) *ResourceHandler {
+    return &ResourceHandler{
+        resourceUC: resourceUC,
+        notifier: notifier,
+    }
 }
 
 // GET /resources
@@ -79,6 +87,15 @@ func (h *ResourceHandler) AddCloudResource(c *gin.Context) {
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
+    }
+
+    log.Println("I got here")
+    if err := h.notifier.Publish(domain.Notification{
+        Event: "notification",
+        UserID: customerID,
+        Message: fmt.Sprintf("added resource %s for customer with customerID %d", req.ResourceName, customerID),
+    }); err != nil {
+        log.Println("error publishing notification")
     }
 
     c.JSON(http.StatusOK, gin.H{"message": "Resources assigned successfully"})

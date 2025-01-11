@@ -1,11 +1,11 @@
 package rest
 
 import (
-    "net/http"
-    "strconv"
+	"net/http"
+	"strconv"
 
-    "github.com/gin-gonic/gin"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/usecase"
+	"github.com/gin-gonic/gin"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/usecase"
 )
 
 type CustomerHandler struct {

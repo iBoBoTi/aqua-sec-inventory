@@ -60,17 +60,39 @@ func (m *mockResourceUsecase) DeleteResource(resourceID int64) error {
     return args.Error(0)
 }
 
+type mockNotifier struct {
+    mock.Mock
+}
+
+func (m *mockNotifier)Publish(message domain.Notification) error{
+    args := m.Called(message)
+	return args.Error(0)
+}
+func (m *mockNotifier) Listen() error{
+    args := m.Called()
+	return args.Error(0)
+}
+func (m *mockNotifier)Close(){
+    m.Called()
+}
+
 func TestAddCloudResourceHandler_OK(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
     r.POST("/customers/:id/resources", handler.AddCloudResource)
 
     mockUC.On("AddCloudResource", int64(123), "aws_vpc_main").Return(nil)
+    mockNotify.On("Publish", domain.Notification{
+        Event: "notification",
+        UserID: int64(123),
+        Message: "added resource aws_vpc_main for customer with customerID 123",
+    }).Return(nil)
 
     body := `{"resource_name":"aws_vpc_main"}`
     req, _ := http.NewRequest("POST", "/customers/123/resources", bytes.NewBufferString(body))
@@ -92,7 +114,8 @@ func TestAddCloudResourceHandler_OK(t *testing.T) {
 func TestAddCloudResourceHandler_InvalidCustomerID(t *testing.T) {
     gin.SetMode(gin.TestMode)
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     r := gin.Default()
     r.POST("/customers/:id/resources", handler.AddCloudResource)
@@ -114,7 +137,8 @@ func TestAddCloudResourcesHandler_CustomerNotFound(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
@@ -143,7 +167,8 @@ func TestAddCloudResourcesHandler_ResourceAlreadyExist(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
@@ -172,7 +197,8 @@ func TestGetResourcesByHandler_OK(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
@@ -208,7 +234,8 @@ func TestGetResourcesByHandler_OK(t *testing.T) {
 func TestGetResourcesByHandler_InvalidCustomerID(t *testing.T) {
     gin.SetMode(gin.TestMode)
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     r := gin.Default()
     r.GET("/customers/:id/resources", handler.GetResourcesByCustomer)
@@ -230,7 +257,8 @@ func TestGetResourcesByHandler_CustomerNotFound(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
@@ -258,7 +286,8 @@ func TestUpdateResourceHandler_OK(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
@@ -288,7 +317,8 @@ func TestUpdateResourceHandler_InvalidResourceID(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
@@ -316,7 +346,8 @@ func TestDeleteResourceHandler_OK(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()
@@ -344,7 +375,8 @@ func TestDeleteResourceHandler_InvalidResourceID(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
-    handler := rest.NewResourceHandler(mockUC)
+    mockNotify := new(mockNotifier)
+    handler := rest.NewResourceHandler(mockUC, mockNotify)
 
     // Setup Gin
     r := gin.Default()

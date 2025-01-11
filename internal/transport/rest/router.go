@@ -23,7 +23,7 @@ func NewRouter(
     apiRouter.GET("/customers/:id", customerHandler.GetCustomerByID)
 
     // Resource endpoints
-    resourceHandler := NewResourceHandler(resourceUC)
+    resourceHandler := NewResourceHandler(resourceUC, notifier)
     apiRouter.POST("/customers/:id/resources", resourceHandler.AddCloudResource)
     apiRouter.GET("/customers/:id/resources", resourceHandler.GetResourcesByCustomer)
 	apiRouter.GET("/resources", resourceHandler.GetAllAvailableResources)

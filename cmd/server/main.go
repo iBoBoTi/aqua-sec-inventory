@@ -41,7 +41,7 @@ var serverCmd = &cobra.Command{
 
         // Initialize RabbitMQ (or any MQ) for notifications
 		log.Println("RabbitMQ URL: ", cfg.RabbitMQ.URL)
-        notifier, err := service.NewRabbitMQNotifier(cfg.RabbitMQ.URL)
+        notifier, err := service.NewRabbitMQNotifier(cfg.RabbitMQ.URL, notificationRepo)
         if err != nil {
             log.Fatalf("Could not connect to RabbitMQ: %v", err)
         }
