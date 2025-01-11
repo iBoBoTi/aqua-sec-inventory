@@ -1,10 +1,10 @@
 package repository
 
 import (
-    "database/sql"
-    "errors"
+	"database/sql"
+	"errors"
 
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
 )
 
 type ResourceRepository interface {
@@ -16,6 +16,9 @@ type ResourceRepository interface {
     Delete(resourceID int64) error
     // Optionally: create or get resource by name
     GetByName(name string) (*domain.Resource, error)
+    AddResourceToCustomer(resourceName string, customerID int64) error
+    GetCustomerResourceByResourceName(customerID int64, resourceName string) (*domain.Resource, error)
+    DoesCustomerHaveResource(customerID int64, resourceName string) (bool, error)
 }
 
 type resourceRepo struct {
@@ -27,7 +30,7 @@ func NewResourceRepository(db *sql.DB) ResourceRepository {
 }
 
 func (r *resourceRepo) GetAll() ([]domain.Resource, error) {
-	query := `SELECT id, name, type, region, customer_id, created_at, updated_at FROM resources`
+	query := `SELECT id, name, type, region, created_at, updated_at FROM resources`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -37,7 +40,7 @@ func (r *resourceRepo) GetAll() ([]domain.Resource, error) {
 	var resources []domain.Resource
 	for rows.Next() {
 		var res domain.Resource
-		if err := rows.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CustomerID, &res.CreatedAt, &res.UpdatedAt); err != nil {
+		if err := rows.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CreatedAt, &res.UpdatedAt); err != nil {
 			return nil, err
 		}
 		resources = append(resources, res)
@@ -46,11 +49,11 @@ func (r *resourceRepo) GetAll() ([]domain.Resource, error) {
 }
 
 func (r *resourceRepo) GetByName(name string) (*domain.Resource, error) {
-    query := `SELECT id, name, type, region, customer_id, created_at, updated_at
+    query := `SELECT id, name, type, region, created_at, updated_at
               FROM resources WHERE name = $1`
     row := r.db.QueryRow(query, name)
     var res domain.Resource
-    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CustomerID, &res.CreatedAt, &res.UpdatedAt); err != nil {
+    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CreatedAt, &res.UpdatedAt); err != nil {
         return nil, err
     }
     return &res, nil
@@ -86,21 +89,76 @@ func (r *resourceRepo) AddResourcesToCustomer(resourceNames []string, customerID
     return nil
 }
 
+func (r *resourceRepo) AddResourceToCustomer(resourceName string, customerID int64) error {
+    // Ensure resource exists
+    resource, errGet := r.getResourceByName(resourceName)
+    if errGet != nil {
+        return errors.New("resource " + resourceName + " does not exist")
+    }
+
+    query := `INSERT INTO customer_resource (customer_id, resource_id) VALUES ($1, $2);`
+    _, err := r.db.Exec(query, customerID, resource.ID)
+    if err!= nil {
+        return err
+    }
+    return nil
+
+}
+
+func (r *resourceRepo) GetCustomerResourceByResourceName(customerID int64, resourceName string) (*domain.Resource, error){
+    query := `SELECT r.* FROM resources r JOIN customer_resource cr ON r.id = cr.resource_id 
+                WHERE cr.customer_id = $1 AND r.name = $2`
+    
+    row := r.db.QueryRow(query, customerID, resourceName)
+    var res domain.Resource
+    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CreatedAt, &res.UpdatedAt); err != nil {
+        return nil, err
+    }
+    return &res, nil
+}
+
+func (r *resourceRepo) DoesCustomerHaveResource(customerID int64, resourceName string) (bool, error){
+    query := `SELECT EXISTS ( SELECT 1 FROM resources r JOIN customer_resource cr ON r.id = cr.resource_id 
+        WHERE cr.customer_id = $1 AND r.name = $2) AS resource_owned;`
+
+    var exists bool
+    row := r.db.QueryRow(query, customerID, resourceName)
+    if err := row.Scan(&exists); err != nil {
+        return false, err
+    }
+    return exists, nil
+
+}
+
 func (r *resourceRepo) getResourceByNameTx(tx *sql.Tx, name string) (*domain.Resource, error) {
-    query := `SELECT id, name, type, region, customer_id, created_at, updated_at
+    query := `SELECT id, name, type, region, created_at, updated_at
               FROM resources WHERE name = $1`
     row := tx.QueryRow(query, name)
     var res domain.Resource
-    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CustomerID, &res.CreatedAt, &res.UpdatedAt); err != nil {
+    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CreatedAt, &res.UpdatedAt); err != nil {
+        return nil, err
+    }
+    return &res, nil
+}
+
+func (r *resourceRepo) getResourceByName(name string) (*domain.Resource, error) {
+    query := `SELECT id, name, type, region, created_at, updated_at
+              FROM resources
+              WHERE name = $1`
+    row := r.db.QueryRow(query, name)
+    var res domain.Resource
+    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CreatedAt, &res.UpdatedAt); err != nil {
         return nil, err
     }
     return &res, nil
 }
 
 func (r *resourceRepo) GetResourcesByCustomer(customerID int64) ([]domain.Resource, error) {
-    query := `SELECT id, name, type, region, customer_id, created_at, updated_at
-              FROM resources
-              WHERE customer_id = $1`
+    // query := `SELECT id, name, type, region, customer_id, created_at, updated_at
+    //           FROM resources
+    //           WHERE customer_id = $1`
+
+    query :=  `SELECT r.* FROM resources r JOIN customer_resource cr ON r.id = cr.resource_id WHERE cr.customer_id = $1;`
     rows, err := r.db.Query(query, customerID)
     if err != nil {
         return nil, err
@@ -110,7 +168,7 @@ func (r *resourceRepo) GetResourcesByCustomer(customerID int64) ([]domain.Resour
     var resources []domain.Resource
     for rows.Next() {
         var res domain.Resource
-        err := rows.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CustomerID, &res.CreatedAt, &res.UpdatedAt)
+        err := rows.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CreatedAt, &res.UpdatedAt)
         if err != nil {
             return nil, err
         }
@@ -120,12 +178,12 @@ func (r *resourceRepo) GetResourcesByCustomer(customerID int64) ([]domain.Resour
 }
 
 func (r *resourceRepo) GetByID(resourceID int64) (*domain.Resource, error) {
-    query := `SELECT id, name, type, region, customer_id, created_at, updated_at
+    query := `SELECT id, name, type, region, created_at, updated_at
               FROM resources
               WHERE id = $1`
     row := r.db.QueryRow(query, resourceID)
     var res domain.Resource
-    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CustomerID, &res.CreatedAt, &res.UpdatedAt); err != nil {
+    if err := row.Scan(&res.ID, &res.Name, &res.Type, &res.Region, &res.CreatedAt, &res.UpdatedAt); err != nil {
         return nil, err
     }
     return &res, nil
@@ -134,10 +192,10 @@ func (r *resourceRepo) GetByID(resourceID int64) (*domain.Resource, error) {
 func (r *resourceRepo) Update(resource *domain.Resource) error {
     query := `
         UPDATE resources
-        SET name = $1, type = $2, region = $3, customer_id = $4, updated_at = NOW()
+        SET name = $1, type = $2, region = $3, updated_at = NOW()
         WHERE id = $5
     `
-    _, err := r.db.Exec(query, resource.Name, resource.Type, resource.Region, resource.CustomerID, resource.ID)
+    _, err := r.db.Exec(query, resource.Name, resource.Type, resource.Region, resource.ID)
     return err
 }
 
