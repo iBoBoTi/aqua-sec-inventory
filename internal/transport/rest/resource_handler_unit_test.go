@@ -47,8 +47,8 @@ func (m *mockResourceUsecase) GetResourcesByCustomer(customerID int64) ([]domain
     return args.Get(0).([]domain.Resource), args.Error(1)
 }
 
-func (m *mockResourceUsecase) UpdateResource(resourceID int64, name, resourceType, region string, customerID *int64) (*domain.Resource, error) {
-    args := m.Called(resourceID, name, resourceType, region, customerID)
+func (m *mockResourceUsecase) UpdateResource(resourceID int64, name, resourceType, region string) (*domain.Resource, error) {
+    args := m.Called(resourceID, name, resourceType, region)
     if args.Get(0) == nil {
         return nil, args.Error(1)
     }
@@ -293,11 +293,10 @@ func TestUpdateResourceHandler_OK(t *testing.T) {
     r := gin.Default()
     r.PUT("/resources/:id", handler.UpdateResource)
 
-	customerID := int64(123)
-    mockUC.On("UpdateResource", int64(1), "aws_vpc_main", "VPC","us-east-1", &customerID).Return(&domain.Resource{
+    mockUC.On("UpdateResource", int64(1), "aws_vpc_main", "VPC","us-east-1").Return(&domain.Resource{
 		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1"},nil)
 
-    body := `{"name": "aws_vpc_main", "type": "VPC", "region": "us-east-1","customer_id": 123}`
+    body := `{"name": "aws_vpc_main", "type": "VPC", "region": "us-east-1"}`
     req, _ := http.NewRequest("PUT", "/resources/1", bytes.NewBufferString(body))
     req.Header.Set("Content-Type", "application/json")
     w := httptest.NewRecorder()
@@ -324,7 +323,7 @@ func TestUpdateResourceHandler_InvalidResourceID(t *testing.T) {
     r := gin.Default()
     r.PUT("/resources/:id", handler.UpdateResource)
 
-    body := `{"name": "aws_vpc_main", "type": "VPC", "region": "us-east-1","customer_id": 123}`
+    body := `{"name": "aws_vpc_main", "type": "VPC", "region": "us-east-1"}`
     req, _ := http.NewRequest("PUT", "/resources/abc", bytes.NewBufferString(body))
     req.Header.Set("Content-Type", "application/json")
     w := httptest.NewRecorder()

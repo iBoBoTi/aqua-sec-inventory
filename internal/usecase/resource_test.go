@@ -215,14 +215,9 @@ func TestUpdateResourceUsecase_OK(t *testing.T) {
 
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
 
-	customerID := int64(123)
-
 	resourceRepo.On("GetByID",int64(1)).Return(&domain.Resource{
 		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1",
 	}, nil)
-
-    // Customer exists
-    customerRepo.On("GetByID", int64(123)).Return(&domain.Customer{ID: 123}, nil)
 
     // Resource assignment
     resourceRepo.On("Update", &domain.Resource{
@@ -230,7 +225,7 @@ func TestUpdateResourceUsecase_OK(t *testing.T) {
 	}).Return(nil)
 
     
-    _,err := uc.UpdateResource(1,"aws_vpc_main","VPC", "us-east-1", &customerID)
+    _,err := uc.UpdateResource(1,"aws_vpc_main","VPC", "us-east-1")
     assert.NoError(t, err)
 
     resourceRepo.AssertExpectations(t)
@@ -243,9 +238,7 @@ func TestUpdateResourceUsecase_EmptyRegion(t *testing.T) {
 
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
 
-	customerID := int64(123)
-    
-    _,err := uc.UpdateResource(1,"aws_vpc_main","VPC", "", &customerID)
+    _,err := uc.UpdateResource(1,"aws_vpc_main","VPC", "")
     assert.EqualError(t, err, "region cannot be empty")
 
 }
@@ -256,9 +249,7 @@ func TestUpdateResourceUsecase_EmptyType(t *testing.T) {
 
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
 
-	customerID := int64(123)
-    
-    _,err := uc.UpdateResource(1,"aws_vpc_main","", "us-east-1", &customerID)
+    _,err := uc.UpdateResource(1,"aws_vpc_main","", "us-east-1")
     assert.EqualError(t, err, "type cannot be empty")
 
 }
@@ -268,36 +259,10 @@ func TestUpdateResourceUsecase_EmptyName(t *testing.T) {
     customerRepo := new(mockCustomerRepo2)
 
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
-
-	customerID := int64(123)
-
     
-    _,err := uc.UpdateResource(1,"","VPC", "us-east-1", &customerID)
+    _,err := uc.UpdateResource(1,"","VPC", "us-east-1")
     assert.EqualError(t, err, "name cannot be empty")
 
-}
-
-func TestUpdateResourceUsecase_CustomerNotFound(t *testing.T) {
-    resourceRepo := new(mockResourceRepo)
-    customerRepo := new(mockCustomerRepo2)
-
-    uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
-
-	customerID := int64(123)
-
-	resourceRepo.On("GetByID",int64(1)).Return(&domain.Resource{
-		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1",
-	}, nil)
-
-    // Customer exists
-    customerRepo.On("GetByID", int64(123)).Return((*domain.Customer)(nil), errors.New("no rows in result set"))
-
-    
-    _,err := uc.UpdateResource(1,"aws_vpc_main","VPC", "us-east-1", &customerID)
-    assert.EqualError(t, err, "customer does not exist for provided customer_id")
-
-    resourceRepo.AssertExpectations(t)
-    customerRepo.AssertExpectations(t)
 }
 
 func TestUpdateResourceUsecase_ResourceNotFound(t *testing.T) {
@@ -306,12 +271,9 @@ func TestUpdateResourceUsecase_ResourceNotFound(t *testing.T) {
 
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
 
-	customerID := int64(123)
-
 	resourceRepo.On("GetByID",int64(1)).Return((*domain.Resource)(nil), errors.New("no rows in result set"))
 
-    
-    _,err := uc.UpdateResource(1,"aws_vpc_main","VPC", "us-east-1", &customerID)
+    _,err := uc.UpdateResource(1,"aws_vpc_main","VPC", "us-east-1")
     assert.EqualError(t, err, "resource not found")
 
     resourceRepo.AssertExpectations(t)

@@ -89,7 +89,6 @@ func (h *ResourceHandler) AddCloudResource(c *gin.Context) {
         return
     }
 
-    log.Println("I got here")
     if err := h.notifier.Publish(domain.Notification{
         Event: "notification",
         UserID: customerID,
@@ -134,14 +133,13 @@ func (h *ResourceHandler) UpdateResource(c *gin.Context) {
         Name       string `json:"name" binding:"required"`
         Type       string `json:"type" binding:"required"`
         Region     string `json:"region" binding:"required"`
-        CustomerID *int64 `json:"customer_id"` // optional
     }
     if err := c.ShouldBindJSON(&req); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
-    updatedRes, err := h.resourceUC.UpdateResource(resourceID, req.Name, req.Type, req.Region, req.CustomerID)
+    updatedRes, err := h.resourceUC.UpdateResource(resourceID, req.Name, req.Type, req.Region)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return

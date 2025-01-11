@@ -13,7 +13,7 @@ type ResourceUsecase interface {
 	GetAllAvailableResources() ([]domain.Resource, error)
     AddCloudResources(customerID int64, resourceNames []string) error
     GetResourcesByCustomer(customerID int64) ([]domain.Resource, error)
-    UpdateResource(resourceID int64, name, resourceType, region string, customerID *int64) (*domain.Resource, error)
+    UpdateResource(resourceID int64, name, resourceType, region string) (*domain.Resource, error)
     DeleteResource(resourceID int64) error
     AddCloudResource(customerID int64, resourceName string) error
 }
@@ -83,7 +83,7 @@ func (uc *resourceUC) GetResourcesByCustomer(customerID int64) ([]domain.Resourc
     return uc.resourceRepo.GetResourcesByCustomer(customerID)
 }
 
-func (uc *resourceUC) UpdateResource(resourceID int64, name, resourceType, region string, customerID *int64) (*domain.Resource, error) {
+func (uc *resourceUC) UpdateResource(resourceID int64, name, resourceType, region string) (*domain.Resource, error) {
     // Basic validations
     if strings.TrimSpace(name) == "" {
         return nil, errors.New("name cannot be empty")
@@ -99,14 +99,6 @@ func (uc *resourceUC) UpdateResource(resourceID int64, name, resourceType, regio
     res, err := uc.resourceRepo.GetByID(resourceID)
     if err != nil {
         return nil, errors.New("resource not found")
-    }
-
-    // If there's a customer ID provided, ensure that customer exists
-    if customerID != nil {
-        _, err := uc.customerRepo.GetByID(*customerID)
-        if err != nil {
-            return nil, errors.New("customer does not exist for provided customer_id")
-        }
     }
 
     // Update resource
