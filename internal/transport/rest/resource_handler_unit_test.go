@@ -29,6 +29,11 @@ func (m *mockResourceUsecase) GetAllAvailableResources() ([]domain.Resource, err
 	return args.Get(0).([]domain.Resource), args.Error(1)
 }
 
+func (m *mockResourceUsecase) AddCloudResource(customerID int64, resourceName string) error {
+    args := m.Called(customerID ,resourceName)
+	return args.Error(0)
+}
+
 func (m *mockResourceUsecase) AddCloudResources(customerID int64, resourceNames []string) error {
     args := m.Called(customerID, resourceNames)
     return args.Error(0)
@@ -55,7 +60,7 @@ func (m *mockResourceUsecase) DeleteResource(resourceID int64) error {
     return args.Error(0)
 }
 
-func TestAddCloudResourcesHandler_OK(t *testing.T) {
+func TestAddCloudResourceHandler_OK(t *testing.T) {
     gin.SetMode(gin.TestMode)
 
     mockUC := new(mockResourceUsecase)
@@ -63,11 +68,11 @@ func TestAddCloudResourcesHandler_OK(t *testing.T) {
 
     // Setup Gin
     r := gin.Default()
-    r.POST("/customers/:id/resources", handler.AddCloudResources)
+    r.POST("/customers/:id/resources", handler.AddCloudResource)
 
-    mockUC.On("AddCloudResources", int64(123), []string{"aws_vpc_main"}).Return(nil)
+    mockUC.On("AddCloudResource", int64(123), "aws_vpc_main").Return(nil)
 
-    body := `{"resource_names":["aws_vpc_main"]}`
+    body := `{"resource_name":"aws_vpc_main"}`
     req, _ := http.NewRequest("POST", "/customers/123/resources", bytes.NewBufferString(body))
     req.Header.Set("Content-Type", "application/json")
     w := httptest.NewRecorder()
@@ -84,15 +89,15 @@ func TestAddCloudResourcesHandler_OK(t *testing.T) {
     mockUC.AssertExpectations(t)
 }
 
-func TestAddCloudResourcesHandler_InvalidCustomerID(t *testing.T) {
+func TestAddCloudResourceHandler_InvalidCustomerID(t *testing.T) {
     gin.SetMode(gin.TestMode)
     mockUC := new(mockResourceUsecase)
     handler := rest.NewResourceHandler(mockUC)
 
     r := gin.Default()
-    r.POST("/customers/:id/resources", handler.AddCloudResources)
+    r.POST("/customers/:id/resources", handler.AddCloudResource)
 
-    body := `{"resource_names":["aws_vpc_main"]}`
+    body := `{"resource_name":"aws_vpc_main"}`
     req, _ := http.NewRequest("POST", "/customers/abc/resources", bytes.NewBufferString(body))
     req.Header.Set("Content-Type", "application/json")
     w := httptest.NewRecorder()
@@ -100,6 +105,9 @@ func TestAddCloudResourcesHandler_InvalidCustomerID(t *testing.T) {
     r.ServeHTTP(w, req)
 
     assert.Equal(t, http.StatusBadRequest, w.Code)
+    var resp map[string]interface{}
+    _ = json.Unmarshal(w.Body.Bytes(), &resp)
+    assert.Equal(t, "invalid customer id", resp["error"])
 }
 
 func TestAddCloudResourcesHandler_CustomerNotFound(t *testing.T) {
@@ -110,11 +118,11 @@ func TestAddCloudResourcesHandler_CustomerNotFound(t *testing.T) {
 
     // Setup Gin
     r := gin.Default()
-    r.POST("/customers/:id/resources", handler.AddCloudResources)
+    r.POST("/customers/:id/resources", handler.AddCloudResource)
 
-    mockUC.On("AddCloudResources", int64(123), []string{"aws_vpc_main"}).Return(errors.New("customer not found"))
+    mockUC.On("AddCloudResource", int64(123), "aws_vpc_main").Return(errors.New("customer not found"))
 
-    body := `{"resource_names":["aws_vpc_main"]}`
+    body := `{"resource_name":"aws_vpc_main"}`
     req, _ := http.NewRequest("POST", "/customers/123/resources", bytes.NewBufferString(body))
     req.Header.Set("Content-Type", "application/json")
     w := httptest.NewRecorder()
@@ -127,6 +135,35 @@ func TestAddCloudResourcesHandler_CustomerNotFound(t *testing.T) {
     var resp map[string]interface{}
     _ = json.Unmarshal(w.Body.Bytes(), &resp)
     assert.Equal(t, "customer not found", resp["error"])
+
+    mockUC.AssertExpectations(t)
+}
+
+func TestAddCloudResourcesHandler_ResourceAlreadyExist(t *testing.T) {
+    gin.SetMode(gin.TestMode)
+
+    mockUC := new(mockResourceUsecase)
+    handler := rest.NewResourceHandler(mockUC)
+
+    // Setup Gin
+    r := gin.Default()
+    r.POST("/customers/:id/resources", handler.AddCloudResource)
+
+    mockUC.On("AddCloudResource", int64(123), "aws_vpc_main").Return(errors.New("customer already has aws_vpc_main resource"))
+
+    body := `{"resource_name":"aws_vpc_main"}`
+    req, _ := http.NewRequest("POST", "/customers/123/resources", bytes.NewBufferString(body))
+    req.Header.Set("Content-Type", "application/json")
+    w := httptest.NewRecorder()
+
+    // Perform request
+    r.ServeHTTP(w, req)
+
+    assert.Equal(t, http.StatusBadRequest, w.Code)
+
+    var resp map[string]interface{}
+    _ = json.Unmarshal(w.Body.Bytes(), &resp)
+    assert.Equal(t, "customer already has aws_vpc_main resource", resp["error"])
 
     mockUC.AssertExpectations(t)
 }
@@ -229,7 +266,7 @@ func TestUpdateResourceHandler_OK(t *testing.T) {
 
 	customerID := int64(123)
     mockUC.On("UpdateResource", int64(1), "aws_vpc_main", "VPC","us-east-1", &customerID).Return(&domain.Resource{
-		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1", CustomerID: &customerID},nil)
+		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1"},nil)
 
     body := `{"name": "aws_vpc_main", "type": "VPC", "region": "us-east-1","customer_id": 123}`
     req, _ := http.NewRequest("PUT", "/resources/1", bytes.NewBufferString(body))

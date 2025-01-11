@@ -58,6 +58,32 @@ func (h *ResourceHandler) AddCloudResources(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"message": "Resources assigned successfully"})
 }
 
+// POST /customers/:id/resources
+func (h *ResourceHandler) AddCloudResource(c *gin.Context) {
+    customerIDParam := c.Param("id")
+    customerID, err := strconv.ParseInt(customerIDParam, 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid customer id"})
+        return
+    }
+
+    var req struct {
+        ResourceName string `json:"resource_name" binding:"required"`
+    }
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    err = h.resourceUC.AddCloudResource(customerID, strings.TrimSpace(req.ResourceName))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Resources assigned successfully"})
+}
+
 // GET /customers/:id/resources
 func (h *ResourceHandler) GetResourcesByCustomer(c *gin.Context) {
     customerIDParam := c.Param("id")

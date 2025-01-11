@@ -1,11 +1,12 @@
 package usecase
 
 import (
-    "errors"
-    "strings"
+	"errors"
+	"fmt"
+	"strings"
 
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/repository"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/repository"
 )
 
 type ResourceUsecase interface {
@@ -14,6 +15,7 @@ type ResourceUsecase interface {
     GetResourcesByCustomer(customerID int64) ([]domain.Resource, error)
     UpdateResource(resourceID int64, name, resourceType, region string, customerID *int64) (*domain.Resource, error)
     DeleteResource(resourceID int64) error
+    AddCloudResource(customerID int64, resourceName string) error
 }
 
 type resourceUC struct {
@@ -45,6 +47,30 @@ func (uc *resourceUC) AddCloudResources(customerID int64, resourceNames []string
     }
 
     return uc.resourceRepo.AddResourcesToCustomer(resourceNames, customerID)
+}
+
+func (uc *resourceUC) AddCloudResource(customerID int64, resourceName string) error {
+    // Check if customer exists
+    _, err := uc.customerRepo.GetByID(customerID)
+    if err != nil {
+        return errors.New("customer not found")
+    }
+
+    // Validate resourceNames
+    if resourceName == "" {
+        return errors.New("no resource name provided")
+    }
+    // Get customer resource by name if it exist send resource already exist error
+    exist, err := uc.resourceRepo.DoesCustomerHaveResource(customerID ,resourceName)
+    if err != nil {
+        return err
+    }
+
+    if exist {
+        return fmt.Errorf("customer already has %s resource", resourceName)
+    }
+
+    return uc.resourceRepo.AddResourceToCustomer(resourceName, customerID)
 }
 
 func (uc *resourceUC) GetResourcesByCustomer(customerID int64) ([]domain.Resource, error) {
@@ -87,7 +113,6 @@ func (uc *resourceUC) UpdateResource(resourceID int64, name, resourceType, regio
     res.Name = name
     res.Type = resourceType
     res.Region = region
-    res.CustomerID = customerID
 
     if err := uc.resourceRepo.Update(res); err != nil {
         return nil, err

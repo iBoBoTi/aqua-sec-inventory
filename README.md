@@ -15,10 +15,10 @@ A Golang-based, clean-architecture application to manage customers and their ass
         </pre>  
 2. **Get Customer By ID**  
     - GET `/customers/:id`  
-3. **Add Cloud Resources**  
+3. **Add Cloud Resource**  
     - POST `/customers/:id/resources`
     - RequestBody:
-        <pre>{"resource_names": ["azure_sql_db"]}</pre>
+        <pre>{"resource_name": "azure_sql_db"}</pre>
 4. **Fetch Cloud Resources**  
     - GET `/customers/:id/resources`  
 5. **Update Resource**  

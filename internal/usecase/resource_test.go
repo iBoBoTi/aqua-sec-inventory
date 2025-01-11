@@ -63,6 +63,28 @@ func (m *mockResourceRepo) GetByName(name string) (*domain.Resource, error) {
     return args.Get(0).(*domain.Resource), args.Error(1)
 }
 
+func (m *mockResourceRepo) AddResourceToCustomer(resourceName string,customerID int64) error{
+	args := m.Called(resourceName, customerID)
+    return args.Error(0)
+}
+
+func (m *mockResourceRepo) GetCustomerResourceByResourceName(customerID int64, resourceName string) (*domain.Resource, error){
+
+    args := m.Called(customerID, resourceName)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*domain.Resource), args.Error(1)
+}
+
+func (m *mockResourceRepo) DoesCustomerHaveResource(customerID int64, resourceName string) (bool, error) {
+    args := m.Called(customerID, resourceName)
+    if args.Get(0) == nil {
+        return false, args.Error(1)
+    }
+    return args.Get(0).(bool), args.Error(1)
+}
+
 // Mock for CustomerRepository
 type mockCustomerRepo2 struct {
     mock.Mock
@@ -97,7 +119,7 @@ func TestGetAllAvailableResourcesUsecase_OK(t *testing.T) {
     resourceRepo.AssertExpectations(t)
 }
 
-func TestAddCloudResourcesUsecase_OK(t *testing.T) {
+func TestAddCloudResourceUsecase_OK(t *testing.T) {
     resourceRepo := new(mockResourceRepo)
     customerRepo := new(mockCustomerRepo2)
 
@@ -107,17 +129,20 @@ func TestAddCloudResourcesUsecase_OK(t *testing.T) {
     customerRepo.On("GetByID", int64(123)).Return(&domain.Customer{ID: 123}, nil)
 
     // Resource assignment
-    resourceRepo.On("AddResourcesToCustomer", []string{"aws_vpc_main", "gcp_vm_instance"}, int64(123)).
+    resourceRepo.On("AddResourceToCustomer", "aws_vpc_main", int64(123)).
         Return(nil)
 
-    err := uc.AddCloudResources(123, []string{"aws_vpc_main", "gcp_vm_instance"})
+    resourceRepo.On("DoesCustomerHaveResource", int64(123),"aws_vpc_main").
+        Return(false, nil)
+
+    err := uc.AddCloudResource(123, "aws_vpc_main")
     assert.NoError(t, err)
 
     resourceRepo.AssertExpectations(t)
     customerRepo.AssertExpectations(t)
 }
 
-func TestAddCloudResourcesUsecase_CustomerNotFound(t *testing.T) {
+func TestAddCloudResourceUsecase_CustomerNotFound(t *testing.T) {
     resourceRepo := new(mockResourceRepo)
     customerRepo := new(mockCustomerRepo2)
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
@@ -126,21 +151,21 @@ func TestAddCloudResourcesUsecase_CustomerNotFound(t *testing.T) {
     customerRepo.On("GetByID", int64(999)).
         Return((*domain.Customer)(nil), errors.New("no rows in result set"))
 
-    err := uc.AddCloudResources(999, []string{"resource1"})
+    err := uc.AddCloudResource(999, "resource1")
     assert.EqualError(t, err, "customer not found")
 
     customerRepo.AssertExpectations(t)
 }
 
-func TestAddCloudResourcesUsecase_NoResourceNames (t *testing.T) {
+func TestAddCloudResourceUsecase_NoResourceNames (t *testing.T) {
     resourceRepo := new(mockResourceRepo)
     customerRepo := new(mockCustomerRepo2)
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
 
 	customerRepo.On("GetByID", int64(123)).Return(&domain.Customer{ID: 123}, nil)
 
-    err := uc.AddCloudResources(123, []string{})
-    assert.EqualError(t, err, "no resource names provided")
+    err := uc.AddCloudResource(123, "")
+    assert.EqualError(t, err, "no resource name provided")
 
     resourceRepo.AssertExpectations(t)
 	customerRepo.AssertExpectations(t)
@@ -193,7 +218,7 @@ func TestUpdateResourceUsecase_OK(t *testing.T) {
 	customerID := int64(123)
 
 	resourceRepo.On("GetByID",int64(1)).Return(&domain.Resource{
-		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1", CustomerID: &customerID,
+		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1",
 	}, nil)
 
     // Customer exists
@@ -201,7 +226,7 @@ func TestUpdateResourceUsecase_OK(t *testing.T) {
 
     // Resource assignment
     resourceRepo.On("Update", &domain.Resource{
-		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1", CustomerID: &customerID,
+		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1",
 	}).Return(nil)
 
     
@@ -261,7 +286,7 @@ func TestUpdateResourceUsecase_CustomerNotFound(t *testing.T) {
 	customerID := int64(123)
 
 	resourceRepo.On("GetByID",int64(1)).Return(&domain.Resource{
-		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1", CustomerID: &customerID,
+		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1",
 	}, nil)
 
     // Customer exists
@@ -299,7 +324,7 @@ func TestDeleteResourceUsecase_OK(t *testing.T) {
     uc := usecase.NewResourceUsecase(resourceRepo, customerRepo)
 
 	resourceRepo.On("GetByID",int64(1)).Return(&domain.Resource{
-		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1", CustomerID: nil,
+		ID: 1, Name: "aws_vpc_main", Type: "VPC", Region: "us-east-1",
 	}, nil)
 
 	resourceRepo.On("Delete",int64(1)).Return(nil)

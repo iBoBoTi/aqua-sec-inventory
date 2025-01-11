@@ -12,13 +12,18 @@ CREATE TABLE IF NOT EXISTS resources (
     name VARCHAR(255) NOT NULL UNIQUE,
     type VARCHAR(100) NOT NULL,
     region VARCHAR(100) NOT NULL,
-    customer_id INT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_customer
-      FOREIGN KEY(customer_id)
-      REFERENCES customers(id)
-      ON DELETE SET NULL
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS customer_resource (
+    id SERIAL PRIMARY KEY, -- Optional auto-increment ID
+    customer_id INT NOT NULL,
+    resource_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(), -- Corrected default value
+    UNIQUE (customer_id, resource_id), -- Prevent duplicate relationships
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
@@ -26,13 +31,6 @@ CREATE TABLE IF NOT EXISTS notifications (
     user_id INT NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS goose_db_version (
-    id SERIAL PRIMARY KEY,
-    version_id BIGINT NOT NULL,
-    is_applied BOOLEAN NOT NULL,
-    tstamp TIMESTAMP DEFAULT current_timestamp
 );
 
 -- +goose Down

@@ -24,13 +24,17 @@ func NewRouter(
 
     // Resource endpoints
     resourceHandler := NewResourceHandler(resourceUC)
-    apiRouter.POST("/customers/:id/resources", resourceHandler.AddCloudResources)
+    apiRouter.POST("/customers/:id/resources", resourceHandler.AddCloudResource)
     apiRouter.GET("/customers/:id/resources", resourceHandler.GetResourcesByCustomer)
 	apiRouter.GET("/resources", resourceHandler.GetAllAvailableResources)
     apiRouter.PUT("/resources/:id", resourceHandler.UpdateResource)
     apiRouter.DELETE("/resources/:id", resourceHandler.DeleteResource)
 
-
+    // Notification endpoints
+    notificationHandler := NewNotificationHandler(notificationUC)
+    apiRouter.GET("/notifications/:user_id", notificationHandler.GetAll)
+    apiRouter.DELETE("/notifications/:user_id", notificationHandler.ClearAll)
+    apiRouter.DELETE("/notifications/:user_id/:notification_id", notificationHandler.ClearSingle)
 
     return r
 }
