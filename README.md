@@ -34,6 +34,11 @@ A Golang-based, clean-architecture application to manage customers and their ass
         </pre>  
 6. **Delete Resource**  
    - DELETE `/resources/:id`
+7. **Notifications**  
+   - **REST**:  
+     - GET `/notifications/:user_id` (Get all)  
+     - DELETE `/notifications/:user_id` (Clear all)  
+     - DELETE `/notifications/:user_id/:notification_id` (Clear single)  
 
 ## Quick Start
 
