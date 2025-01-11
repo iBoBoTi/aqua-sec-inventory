@@ -1,5 +1,5 @@
 # Start from the latest golang base image
-FROM golang:latest AS builder
+FROM golang:1.23.1-alpine AS builder
 WORKDIR /app
 
 COPY go.mod go.sum ./

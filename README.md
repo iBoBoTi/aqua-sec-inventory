@@ -5,23 +5,33 @@ A Golang-based, clean-architecture application to manage customers and their ass
 ## Features
 
 1. **Create Customer**  
-   - POST `/customers`  
+    - POST `/customers`
+    - RequestBody: 
+        ```{
+                "name": "John Doe",
+                "email": "johndoe@email.com"
+        }```   
 2. **Get Customer By ID**  
-   - GET `/customers/:id`  
+    - GET `/customers/:id`  
 3. **Add Cloud Resources**  
-   - POST `/customers/:customer_id/resources`  
+    - POST `/customers/:id/resources`
+    - RequestBody: 
+        ```{
+                "resource_names": ["azure_sql_db"]
+        }```  
 4. **Fetch Cloud Resources**  
-   - GET `/customers/:customer_id/resources`  
+    - GET `/customers/:id/resources`  
 5. **Update Resource**  
-   - PUT `/resources/:resource_id`  
+    - PUT `/resources/:id` 
+    - RequestBody:
+        ```{
+                "name": "aws_vpc_main",
+                "type": "VPC",
+                "region":"us-east-1",
+                "customer_id":, 123 //optional
+        }```  
 6. **Delete Resource**  
-   - DELETE `/resources/:resource_id`  
-7. **Notifications**  
-   - **REST**:  
-     - GET `/notifications/:user_id` (Get all)  
-     - DELETE `/notifications/:user_id` (Clear all)  
-     - DELETE `/notifications/:user_id/:notification_id` (Clear single)  
-   - **gRPC (optional)**: see `internal/transport/grpc/notification_service.go` for a stub.
+   - DELETE `/resources/:id`
 
 ## Quick Start
 
