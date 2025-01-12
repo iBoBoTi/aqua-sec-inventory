@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/repository"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/domain"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -20,10 +19,9 @@ type RabbitMQNotifier struct {
     conn    *amqp.Connection
     channel *amqp.Channel
     queue   amqp.Queue
-    notificationRepo repository.NotificationRepository
 }
 
-func NewRabbitMQNotifier(amqpURL string, notificationRepo repository.NotificationRepository) (*RabbitMQNotifier, error) {
+func NewRabbitMQNotifier(amqpURL string) (*RabbitMQNotifier, error) {
     conn, err := amqp.Dial(amqpURL)
     if err != nil {
         return nil, fmt.Errorf("error dailing RabbitMQ server: %w", err)
@@ -48,7 +46,6 @@ func NewRabbitMQNotifier(amqpURL string, notificationRepo repository.Notificatio
         conn:    conn,
         channel: ch,
         queue:   q,
-        notificationRepo: notificationRepo,
     }, nil
 }
 
@@ -97,12 +94,12 @@ func (n *RabbitMQNotifier) Listen() error {
                 log.Printf("Failed to decode message: %s", err)
                 continue
             }
-            if payload.Event == "notification" && payload.UserID != 0 && payload.Message != "" {
-                log.Println("notification payload: ", payload)
-                if err := n.notificationRepo.Create(&payload); err != nil {
-                    log.Println("error creating notification: ", err)
-                }
-            }
+            // if payload.Event == "notification" && payload.UserID != 0 && payload.Message != "" {
+            //     log.Println("notification payload: ", payload)
+            //     if err := n.notificationRepo.Create(&payload); err != nil {
+            //         log.Println("error creating notification: ", err)
+            //     }
+            // }
             
         }
     }()

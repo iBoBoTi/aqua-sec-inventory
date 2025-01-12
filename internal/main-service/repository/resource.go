@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/domain"
 )
 
 type ResourceRepository interface {

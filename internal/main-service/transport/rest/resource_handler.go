@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/service"
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/usecase"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/domain"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/service"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/usecase"
 )
 
 type ResourceHandler struct {

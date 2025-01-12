@@ -5,7 +5,7 @@ import (
     "strconv"
 
     "github.com/gin-gonic/gin"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/usecase"
+    "github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/usecase"
 )
 
 type NotificationHandler struct {

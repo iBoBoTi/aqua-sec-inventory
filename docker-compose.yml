@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 
 services:
   db:
@@ -41,8 +41,10 @@ services:
     networks:
       - app_network
 
-  app:
-    build: .
+  main:
+    build:
+      context: .
+      target: main-service
     container_name: aqua_sec_cloud_inventory_app
     depends_on:
       db:
@@ -61,7 +63,31 @@ services:
       SERVER_PORT: 8080
     networks:
       - app_network
-    command: ["./aqua_sec_cloud-inventory", "server"]
+    command: ["./aqua_sec_cloud-inventory", "main-server"]
+
+  notification:
+    build:
+      context: .
+      target: notification-service
+    container_name: aqua_sec_cloud_inventory_app_notification
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: aqua_sec_cloud_inventory
+      RABBITMQ_URL: amqp://rabbit:rabbit@rabbitmq:5672/
+      SERVER_PORT: 8081
+    networks:
+      - app_network
+    command: ["./aqua_sec_cloud-inventory-notification", "notification-server"]
 
 volumes:
   pgdata:

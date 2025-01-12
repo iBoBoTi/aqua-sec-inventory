@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
-	"github.com/iBoBoTi/aqua-sec-inventory/internal/repository"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/domain"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/repository"
 )
 
 type CustomerUsecase interface {

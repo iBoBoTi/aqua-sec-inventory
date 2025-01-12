@@ -4,8 +4,8 @@ import (
     "errors"
     "testing"
 
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/usecase"
+    "github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/domain"
+    "github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/usecase"
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/mock"
 )

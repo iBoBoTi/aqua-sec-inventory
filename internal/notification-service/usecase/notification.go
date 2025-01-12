@@ -3,8 +3,8 @@ package usecase
 import (
     "errors"
 
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/repository"
+    "github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/domain"
+    "github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/repository"
 )
 
 type NotificationUsecase interface {

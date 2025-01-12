@@ -3,7 +3,7 @@ package repository
 import (
     "database/sql"
 
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/domain"
+    "github.com/iBoBoTi/aqua-sec-inventory/internal/main-service/domain"
 )
 
 type CustomerRepository interface {

@@ -46,7 +46,7 @@ func LoadConfig() *Config {
             MigrationsPath: getEnv("DB_MIGRATIONS_PATH", "migrations"),
         },
         Server: ServerConfig{
-            Port: getEnv("SERVER_PORT", "8080"),
+            Port: getEnv("SERVER_PORT", "8081"),
         },
         RabbitMQ: RabbitMQConfig{
             URL: getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
