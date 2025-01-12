@@ -143,6 +143,61 @@ A Golang-based, clean-architecture application for managing customers and their 
       "message": "Notification cleared"
   }
   ```
+### **4. Notification GRPC Service**
+  #### GetAllNotifications
+- **Request:**
+  ```protobuf
+  GetAllNotificationsRequest {
+    user_id: 123
+  }
+  ```
+- **Response:**
+  ```protobuf
+  GetAllNotificationsResponse {
+    notifications: [
+      {
+        id: 1,
+        user_id: 123,
+        message: "New resource 1 added",
+        created_at: "2025-01-12T10:30:00Z"
+      },
+      {
+        id: 2,
+        user_id: 123,
+        message: "New resource 2 added",
+        created_at: "2025-01-11T15:45:00Z"
+      }
+    ]
+  }
+  ```
+
+#### ClearSingleNotification
+- **Request:**
+  ```protobuf
+  ClearSingleNotificationRequest {
+    notification_id: 1
+  }
+  ```
+- **Response:**
+  ```protobuf
+  ClearSingleNotificationResponse {
+    message: "Notification cleared successfully."
+  }
+  ```
+
+#### ClearAllNotifications
+- **Request:**
+  ```protobuf
+  ClearAllNotificationsRequest {
+    user_id: 123
+  }
+  ```
+- **Response:**
+  ```protobuf
+  ClearAllNotificationsResponse {
+    message: "All notifications cleared successfully."
+  }
+  ```
 
 ---
 
