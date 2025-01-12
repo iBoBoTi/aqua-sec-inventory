@@ -1,9 +1,9 @@
 package rest
 
 import (
-    "github.com/gin-gonic/gin"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/service"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/usecase"
+	"github.com/gin-gonic/gin"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/service"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/usecase"
 )
 
 func NewRouter(
@@ -17,9 +17,10 @@ func NewRouter(
 
     // Notification endpoints
     notificationHandler := NewNotificationHandler(notificationUC)
-    apiRouter.GET("/notifications/:user_id", notificationHandler.GetAll)
-    apiRouter.DELETE("/notifications/:user_id", notificationHandler.ClearAll)
-    apiRouter.DELETE("/notifications/:user_id/:notification_id", notificationHandler.ClearSingle)
+    apiRouter.GET("/users/:id/notifications", notificationHandler.GetAllUsersNotifications)
+    apiRouter.DELETE("/users/:id/notifications", notificationHandler.ClearAllUsersNotifications)
+    apiRouter.DELETE("/notifications/:id", notificationHandler.ClearSingleNotification)
+   
 
     return r
 }

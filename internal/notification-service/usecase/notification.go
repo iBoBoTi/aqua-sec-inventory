@@ -26,7 +26,7 @@ func NewNotificationUsecase(notificationRepo repository.NotificationRepository) 
 
 func (uc *notificationUC) CreateNotification(userID int64, message string) (*domain.Notification, error) {
     if userID <= 0 {
-        return nil, errors.New("invalid userID")
+        return nil, errors.New("invalid user id")
     }
     if message == "" {
         return nil, errors.New("empty notification message")
@@ -44,21 +44,21 @@ func (uc *notificationUC) CreateNotification(userID int64, message string) (*dom
 
 func (uc *notificationUC) GetAllNotifications(userID int64) ([]domain.Notification, error) {
     if userID <= 0 {
-        return nil, errors.New("invalid userID")
+        return nil, errors.New("invalid user id")
     }
     return uc.notificationRepo.GetAllByUserID(userID)
 }
 
 func (uc *notificationUC) ClearNotification(notificationID int64) error {
     if notificationID <= 0 {
-        return errors.New("invalid notificationID")
+        return errors.New("invalid notification id")
     }
     return uc.notificationRepo.DeleteByID(notificationID)
 }
 
 func (uc *notificationUC) ClearAllNotifications(userID int64) error {
     if userID <= 0 {
-        return errors.New("invalid userID")
+        return errors.New("invalid user id")
     }
     return uc.notificationRepo.DeleteAllByUserID(userID)
 }

@@ -113,7 +113,7 @@ A Golang-based, clean-architecture application for managing customers and their 
 
 ### **3. Notification Service**
 - **Get All Notifications**  
-  **Endpoint:** `GET /notifications/:user_id`  
+  **Endpoint:** `GET /users/:id/notifications`  
   **Response:**  
   ```json
   [
@@ -127,7 +127,7 @@ A Golang-based, clean-architecture application for managing customers and their 
   ```
 
 - **Clear All Notifications**  
-  **Endpoint:** `DELETE /notifications/:user_id`  
+  **Endpoint:** `DELETE /users/:id/notifications`  
   **Response:**  
   ```json
   {
@@ -136,7 +136,7 @@ A Golang-based, clean-architecture application for managing customers and their 
   ```
 
 - **Clear Single Notification**  
-  **Endpoint:** `DELETE /notifications/:user_id/:notification_id`  
+  **Endpoint:** `DELETE /notifications/:id`  
   **Response:**  
   ```json
   {

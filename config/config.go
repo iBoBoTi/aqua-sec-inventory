@@ -19,6 +19,10 @@ type ServerConfig struct {
     Port string
 }
 
+type GRPCServerConfig struct {
+    Port string
+}
+
 type RabbitMQConfig struct {
     URL string
 }
@@ -26,6 +30,7 @@ type RabbitMQConfig struct {
 type Config struct {
     DB       DBConfig
     Server   ServerConfig
+    GRPCServer GRPCServerConfig
     RabbitMQ RabbitMQConfig
 }
 
@@ -47,6 +52,9 @@ func LoadConfig() *Config {
         },
         Server: ServerConfig{
             Port: getEnv("SERVER_PORT", "8081"),
+        },
+        GRPCServer: GRPCServerConfig{
+            Port: getEnv("GRPC_SERVER_PORT", "9091"),
         },
         RabbitMQ: RabbitMQConfig{
             URL: getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),

@@ -1,11 +1,11 @@
 package rest
 
 import (
-    "net/http"
-    "strconv"
+	"net/http"
+	"strconv"
 
-    "github.com/gin-gonic/gin"
-    "github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/usecase"
+	"github.com/gin-gonic/gin"
+	"github.com/iBoBoTi/aqua-sec-inventory/internal/notification-service/usecase"
 )
 
 type NotificationHandler struct {
@@ -16,30 +16,30 @@ func NewNotificationHandler(notificationUC usecase.NotificationUsecase) *Notific
     return &NotificationHandler{notificationUC: notificationUC}
 }
 
-// GET /notifications/:user_id
-func (h *NotificationHandler) GetAll(c *gin.Context) {
-    userIDParam := c.Param("user_id")
+// GET /users/:id/notifications
+func (h *NotificationHandler) GetAllUsersNotifications(c *gin.Context) {
+    userIDParam := c.Param("id")
     userID, err := strconv.ParseInt(userIDParam, 10, 64)
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
         return
     }
 
-    notifs, err := h.notificationUC.GetAllNotifications(userID)
+    notifications, err := h.notificationUC.GetAllNotifications(userID)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
-    c.JSON(http.StatusOK, notifs)
+    c.JSON(http.StatusOK, map[string]interface{}{"data": notifications})
 }
 
-// DELETE /notifications/:user_id
-func (h *NotificationHandler) ClearAll(c *gin.Context) {
-    userIDParam := c.Param("user_id")
+// DELETE /users/:id/notifications
+func (h *NotificationHandler) ClearAllUsersNotifications(c *gin.Context) {
+    userIDParam := c.Param("id")
     userID, err := strconv.ParseInt(userIDParam, 10, 64)
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
         return
     }
 
@@ -52,16 +52,16 @@ func (h *NotificationHandler) ClearAll(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"message": "All notifications cleared"})
 }
 
-// DELETE /notifications/:user_id/:notification_id
-func (h *NotificationHandler) ClearSingle(c *gin.Context) {
-    notifIDParam := c.Param("notification_id")
-    notifID, err := strconv.ParseInt(notifIDParam, 10, 64)
+// DELETE /notifications/:id
+func (h *NotificationHandler) ClearSingleNotification(c *gin.Context) {
+    notificationIDParam := c.Param("id")
+    notificationID, err := strconv.ParseInt(notificationIDParam, 10, 64)
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid notification_id"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid notification id"})
         return
     }
 
-    err = h.notificationUC.ClearNotification(notifID)
+    err = h.notificationUC.ClearNotification(notificationID)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return

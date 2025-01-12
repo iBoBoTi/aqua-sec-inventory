@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option go_package = "github.com/iBoBoTi/aqua-sec-inventory/proto/notification;notification";
+
+package notifications;
+
+service NotificationService {
+  // Retrieve all notifications for a particular user.
+  rpc GetAllNotifications(GetAllNotificationsRequest) returns (GetAllNotificationsResponse);
+
+  // Clear (delete) a single notification by ID.
+  rpc ClearSingleNotification(ClearSingleNotificationRequest) returns (ClearSingleNotificationResponse);
+
+  // Clear (delete) all notifications for a user.
+  rpc ClearAllNotifications(ClearAllNotificationsRequest) returns (ClearAllNotificationsResponse);
+}
+
+// Notification entity representation.
+message Notification {
+  int64 id = 1;
+  int64 user_id = 2;
+  string message = 3;
+  string created_at = 4;
+}
+
+// Request/Response messages:
+
+message GetAllNotificationsRequest {
+  int64 user_id = 1;
+}
+
+message GetAllNotificationsResponse {
+  repeated Notification notifications = 1;
+}
+
+message ClearSingleNotificationRequest {
+  int64 notification_id = 1;
+}
+
+message ClearSingleNotificationResponse {
+  string message = 1;
+}
+
+message ClearAllNotificationsRequest {
+  int64 user_id = 1;
+}
+
+message ClearAllNotificationsResponse {
+  string message = 1;
+}
