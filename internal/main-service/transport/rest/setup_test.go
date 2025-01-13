@@ -117,3 +117,33 @@ func seedCustomer(t *testing.T, db *sql.DB) domain.Customer {
 
 	return customer
 }
+
+func seedResource1(t *testing.T, db *sql.DB) domain.Resource {
+
+	var resource domain.Resource
+	query := `
+		INSERT INTO resources (name, type, region) 
+		VALUES ($1, $2, $3) 
+		RETURNING id, name, type, region;
+	`
+
+	err := db.QueryRow(query, "aws_vpc_main", "VPC", "us-east-1").Scan(&resource.ID, &resource.Name, &resource.Type, &resource.Region)
+	assert.NoError(t, err)
+
+	return resource
+}
+
+func seedResource2(t *testing.T, db *sql.DB) domain.Resource {
+
+	var resource domain.Resource
+	query := `
+		INSERT INTO resources (name, type, region) 
+		VALUES ($1, $2, $3) 
+		RETURNING id, name, type, region;
+	`
+
+	err := db.QueryRow(query, "gcp_vm_instance", "Compute", "us-central1").Scan(&resource.ID, &resource.Name, &resource.Type, &resource.Region)
+	assert.NoError(t, err)
+
+	return resource
+}

@@ -35,7 +35,6 @@ func (h *ResourceHandler) GetAllAvailableResources(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": resources})
 }
 
-// POST /customers/:id/resources
 func (h *ResourceHandler) AddCloudResources(c *gin.Context) {
 	customerIDParam := c.Param("id")
 	customerID, err := strconv.ParseInt(customerIDParam, 10, 64)
@@ -104,7 +103,7 @@ func (h *ResourceHandler) GetResourcesByCustomer(c *gin.Context) {
 	customerIDParam := c.Param("id")
 	customerID, err := strconv.ParseInt(customerIDParam, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid customer_id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid customer id"})
 		return
 	}
 

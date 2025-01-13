@@ -248,7 +248,7 @@ func TestGetResourcesByHandler_InvalidCustomerID(t *testing.T) {
 
 	var resp map[string]interface{}
 	_ = json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.Equal(t, "invalid customer_id", resp["error"])
+	assert.Equal(t, "invalid customer id", resp["error"])
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }

@@ -193,7 +193,7 @@ func (r *resourceRepo) Update(resource *domain.Resource) error {
 	query := `
         UPDATE resources
         SET name = $1, type = $2, region = $3, updated_at = NOW()
-        WHERE id = $5
+        WHERE id = $4
     `
 	_, err := r.db.Exec(query, resource.Name, resource.Type, resource.Region, resource.ID)
 	return err
